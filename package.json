@@ -5,12 +5,12 @@
   "author": "Selvam Subbiah",
   "license": "ISC",
   "dependencies": {
-    "@mediapipe/pose": "~0.4.0",
+    "@mediapipe/pose": "^0.5.1635988162",
     "@tensorflow-models/knn-classifier": "^1.2.2",
     "@tensorflow-models/pose-detection": "0.0.6",
     "@tensorflow/tfjs": "^3.11.0",
-    "@tensorflow/tfjs-backend-webgl": "^3.9.0",
-    "@tensorflow/tfjs-core": "^3.11.0"
+    "@tensorflow/tfjs-backend-webgl": "^3.11.0",
+    "@tensorflow/tfjs-converter": "^3.11.0"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel *.html --no-hmr --open",

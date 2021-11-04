@@ -1,14 +1,14 @@
-import * as poseDetection from '@tensorflow-models/pose-detection';
-import '@tensorflow/tfjs-backend-webgl';
+import {getPoses} from './poseDetection.js';
+import {buildClassifier, classify} from './classifyPoses.js';
 
-/* var imgURLArr = [
+/* var trainDataImgURLArr = [
     "http://localhost:8080/cricket-shot/sample-images/thao-le-hoang.jpg",
     "http://localhost:8080/cricket-shot/sample-images/david-hofmann.jpg",
     "http://localhost:8080/cricket-shot/sample-images/tennis-forehand.jpg",
     "http://localhost:8080/cricket-shot/sample-images/woman.jpg"
 ] */
 
-var imgURLArr = [
+var trainDataImgURLArr = [
     "http://localhost:8080/cricket-shot/training-set/square-cut/images021.jpg",
     "http://localhost:8080/cricket-shot/training-set/square-cut/images022.jpg",
     "http://localhost:8080/cricket-shot/training-set/square-cut/images023.jpg",
@@ -66,190 +66,30 @@ var imgURLArr = [
     "http://localhost:8080/cricket-shot/training-set/square-cut/images77.jpg"
 ];
 
-let image = document.getElementById("imgElement");
-let outputCanvas = document.getElementById("outputCanvas");
-const canvasCtx = outputCanvas.getContext('2d');
-var link = document.getElementById('link');
-let detector, model;
-const scoreThreshold = 0.6;
+/* const testDataArr = [
+    [0.146,0.01,0.144,0.009,0.144,0.001,0.144,0,0.143,0.01,0.142,0.011,0.134,0.004,0.131,0.002,0.12,0.007,0.135,0.025,0.133,0.026,0.095,0.015,0.089,0.035,0.158,0.005,0.098,0.089,0.181,0.012,0.135,0.089,0.182,0.01,0.141,0.087,0.183,0.003,0.136,0.083,0.185,0.008,0.134,0.086,0.08,0.185,0.068,0.188,0.091,0.175,0.08,0.211,0.011,0.223,0.038,0.226,0.003,0.23,0.025,0.223,0,0.247,0.03,0.229],
+    [0.057,0.06,0.056,0.052,0.056,0.052,0.057,0.052,0.049,0.054,0.046,0.053,0.04,0.054,0.05,0.053,0.032,0.055,0.061,0.067,0.053,0.068,0.086,0.08,0,0.094,0.137,0.062,0.009,0.147,0.144,0.021,0.03,0.159,0.149,0.007,0.031,0.163,0.144,0.001,0.03,0.159,0.15,0.007,0.034,0.156,0.155,0.166,0.106,0.19,0.127,0.102,0.099,0.257,0.157,0.044,0.101,0.346,0.17,0.041,0.108,0.357,0.123,0,0.077,0.359],
+    [0.09,0.012,0.094,0.003,0.102,0.005,0.105,0.004,0.089,0.002,0.087,0.002,0.08,0,0.108,0.005,0.079,0.001,0.101,0.016,0.088,0.014,0.134,0.025,0.075,0.034,0.164,0.085,0.074,0.092,0.128,0.031,0.099,0.1,0.118,0.016,0.105,0.1,0.119,0.007,0.103,0.094,0.11,0.009,0.103,0.097,0.108,0.173,0.063,0.162,0.127,0.248,0.017,0.237,0.104,0.266,0.004,0.258,0.102,0.265,0.002,0.274,0.111,0.296,0,0.286]
+]; */
 
-async function createDetector() {
-    model = poseDetection.SupportedModels.BlazePose;
-    const detectorConfig = {
-        runtime: "tfjs",
-        enableSmoothing: true,
-        modelType: "full"
-    };
-    detector = await poseDetection.createDetector(model, detectorConfig);
+var testDataImgURLArr = [
+    "http://localhost:8080/cricket-shot/training-set/square-cut/images43.jpg",
+    "http://localhost:8080/cricket-shot/training-set/square-cut/images44.jpg",
+    "http://localhost:8080/cricket-shot/training-set/square-cut/images49.jpg"
+];
+
+async function classifyCricketShots() {
+    //Load the classifier
+    const classifier = await buildClassifier();
+
+    //Get the poseVectors for test data images
+    let testDataArr = await getPoses(testDataImgURLArr);
+    console.log(`Test Data: ${testDataArr}`);
+
+    //Prediction
+    classify(classifier, testDataArr);
 }
 
-async function predictPoses(imageName, canvas, ctx) {
-    let poses = null;
-    let pose = null;
-    if (detector != null) {
-        try {
-            poses = await detector.estimatePoses(canvas); 
-        } catch (error) {
-            detector.dispose();
-            detector = null;
-            console.log(error);
-        }
-    }
+classifyCricketShots();
 
-    if (poses && poses.length > 0) {
-        for (pose of poses) {
-            //console.log(`Poses for ${imageName}: `, JSON.stringify(pose));
-            if (pose.keypoints != null) {
-                drawKeypoints(pose.keypoints, ctx);
-                drawSkeleton(pose.keypoints, ctx);
-            } else {
-                console.log(`No keypoints identified for ${imageName}`);
-            }
-        }
-    } else {
-        console.log(`No poses identified for ${imageName}`);
-    }
-
-    return pose;
-}
-
-function drawKeypoints(keypoints, ctx) {
-    ctx.fillStyle = 'Green';
-    ctx.strokeStyle = 'White';
-    ctx.lineWidth = 2;
-    for(let i=0; i<keypoints.length; i++) {
-        drawKeypoint(keypoints[i], ctx);    
-    }
-}
-
-function drawKeypoint(keypoint, ctx) {
-    const radius = 4;
-    if (keypoint.score >= scoreThreshold) {
-      const circle = new Path2D();
-      circle.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
-      ctx.fill(circle);
-      ctx.stroke(circle);
-    }
-}
-
-function drawSkeleton(keypoints, ctx) {
-    const color = "#fff";
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-
-    poseDetection.util.getAdjacentPairs(model)
-        .forEach(([i, j]) => {
-            const kp1 = keypoints[i];
-            const kp2 = keypoints[j];
-            if (kp1.score >= scoreThreshold && kp2.score >= scoreThreshold) {
-                ctx.beginPath();
-                ctx.moveTo(kp1.x, kp1.y);
-                ctx.lineTo(kp2.x, kp2.y);
-                ctx.stroke();
-            }
-    });
-}
-
-function loadImage(imgURL) {
-    return new Promise(resolve => {
-        image.onload = () => resolve(image);
-        image.src = imgURL;
-    });
-}
-
-function downloadOutputImage(imageName) {
-    const outputImageName = "output_" + imageName;
-    link.setAttribute('download', outputImageName);
-    link.setAttribute('href', outputCanvas.toDataURL("image/jpg").replace("image/jpg", "image/octet-stream"));
-    link.click(); 
-}
-
-function drawImageInCanvas(image, outputCanvas) {
-    outputCanvas.width = image.width;
-    outputCanvas.height = image.height;
-    outputCanvas.imageSmoothingEnabled = false;
-    canvasCtx.drawImage(image, 0, 0, image.width, image.height);
-}
-
-function getImageName(imgURL) {
-    return imgURL.substring(imgURL.lastIndexOf("/") + 1);
-}
-
-function flattenPoseData(pose) {
-    let poseVector = [];
-    let xMin = Number.POSITIVE_INFINITY;
-    let yMin = Number.POSITIVE_INFINITY;
-    let scalingFactor = Number.NEGATIVE_INFINITY;
-
-    pose.keypoints.forEach(keypoint => {
-        const x = keypoint.x;
-        const y = keypoint.y;
-
-        poseVector.push(x, y);
-
-        xMin = Math.min(xMin, x);
-        yMin = Math.min(yMin, y);
-        scalingFactor = Math.max(scalingFactor, Math.max(x, y));
-    });
-
-    return [poseVector, xMin, yMin, scalingFactor];
-}
-
-function resizeAndScale(poseVector, xMin, yMin, scalingFactor) {
-    return poseVector.map((value, index) => {
-        return (index % 2 == 0 ?
-            (value - xMin) / scalingFactor :
-            (value - yMin) / scalingFactor);
-    });
-}
-
-function normalize(scaledPoseVector) {
-    let poseVectorSquaredSum = 0;
-    let poseVectorAbsSum = 0;
-
-    scaledPoseVector.forEach(value => {
-        poseVectorSquaredSum += Math.pow(value, 2);
-    });
-
-    poseVectorAbsSum = Math.sqrt(poseVectorSquaredSum);
-
-    return scaledPoseVector.map(value => {
-        return Math.round((value / poseVectorAbsSum) * 1000) / 1000;
-    });
-}
-
-const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
-
-async function main() {
-    //Create a detector
-    await createDetector();
-
-    let imageName;
-    for(let i = 0; i < imgURLArr.length; i++) {
-        imageName = getImageName(imgURLArr[i]);
-       
-        //Load the image to predict the poses
-        let image = await loadImage(imgURLArr[i]);
-
-        //Draw the image on canvas
-        drawImageInCanvas(image, outputCanvas);
-        
-        //Predict poses for the image
-        await wait(5000);
-        let pose = await predictPoses(imageName, outputCanvas, canvasCtx);
-
-        //Download the image with keypoints and skeletons drawn on it
-        downloadOutputImage(imageName);
-
-        //Flatten and normalize pose data
-        if(pose != null && pose.keypoints != null) {
-            let [poseVector, xMin, yMin, scalingFactor] = flattenPoseData(pose);
-            let scaledPoseVector = resizeAndScale(poseVector, xMin, yMin, scalingFactor);
-            let normalizedPoseVector = JSON.stringify(normalize(scaledPoseVector));
-            console.log(`${imageName}: ${normalizedPoseVector}`);
-        }
-    }
-}
-
-main();
+//getPoses(trainDataImgURLArr);
