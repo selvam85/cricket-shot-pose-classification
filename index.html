@@ -5,6 +5,23 @@
         <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0, user-scalable=no">
     </head>
     <body>
+        <p>
+            <h1>Cricket Shot Classification using TensorFlow.js BlazePose model</h1>
+        </p>
+        <p>
+            This demo classifies between three different cricket shots - cover drive, flick and square cut. 
+            BlazePose model was used to capture the poses from images belonging to the above category of shots
+            and then the pose data was normalized and passed as input to a KNN classifier for classification.
+        </p>
+        <p>
+            <h3>Upload a picture of a player playing any of these shots - cover drive, flick or square cut. </h3>
+        </p>
+        <div>
+            <button id="predictButton">Predict the cricket shot</button>
+        </div>
+        <p><h4>Prediction:</h4></p>
+        <p id="output" style="font-weight: bold;"></p>
+
         <img id="imgElement" crossorigin='anonymous' width="640" height="auto">
         <canvas id="outputCanvas"></canvas>
         <a id="link"></a>
