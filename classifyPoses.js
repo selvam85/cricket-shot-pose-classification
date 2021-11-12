@@ -37,7 +37,7 @@ export async function classify(classifier, testDataArr) {
     let result
     let predictedClassesArr = [];
     for(const testData of testDataArr) {
-        console.log(`test data for prediction: ${testData}`);
+        //console.log(`test data for prediction: ${testData}`);
         result = await classifier.predictClass(tf.tensor1d(testData));
         console.log('Predictions: ' + JSON.stringify(result));
         console.log(`Cricket Shot: ${cricketShotClasses[result.classIndex]}`);

@@ -156,12 +156,12 @@ function normalize(scaledPoseVector) {
 
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
-export async function getPoses(imgURLArr) {
+export async function getPoses(imgURLArr, isDownloadImage=false) {
     let poseVectorArr = [];
 
     //Create a detector
     await createDetector();
-
+                
     let imageName;
     for(let i = 0; i < imgURLArr.length; i++) {
         imageName = getImageName(imgURLArr[i]);
@@ -177,7 +177,9 @@ export async function getPoses(imgURLArr) {
         let pose = await predictPoses(imageName, outputCanvas, canvasCtx);
 
         //Download the image with keypoints and skeletons drawn on it
-        downloadOutputImage(imageName);
+        if(isDownloadImage) {
+            downloadOutputImage(imageName);
+        }
 
         //Flatten and normalize pose data
         if(pose != null && pose.keypoints != null) {

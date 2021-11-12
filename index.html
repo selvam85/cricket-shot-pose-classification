@@ -16,19 +16,26 @@
         <p>
             <h3>Upload a picture of a player playing any of these shots - cover drive, flick or square cut. </h3>
         </p>
-        <div>
-            <button id="predictButton">Predict the cricket shot</button>
-        </div>
-        <p><h4>Prediction:</h4></p>
-        <p id="output" style="font-weight: bold;"></p>
 
-        <img id="imgElement" crossorigin='anonymous' width="640" height="auto">
-        <canvas id="outputCanvas"></canvas>
+        <div>
+            <input type="file" id="chooseFiles" accept="image/*"/>
+        </div>
+
+        <div style="margin-top: 20px; margin-bottom: 20px;">
+            <p id="info" style="font-style: italic;">BlazePose Model and KNN classifier loading...</p>              
+            <button id="predictButton">Predict the cricket shot</button>
+            <p><h4>Prediction:</h4></p>
+            <p id="output" style="font-weight: bold;"></p>
+        </div>
+
+        <div>
+            <img id="imgElement" crossorigin='anonymous' width="640" height="auto">
+            <canvas id="outputCanvas"></canvas>
+        </div>
+
         <a id="link"></a>
     </body>
 
-    <script src="./index.js"></script>
-    <!-- <script src="./json-test.js"></script> -->
-    <!-- <script src="./classifyPoses.js"></script> -->
+    <script src="./index.js" defer></script>
 
 </html>
