@@ -15,7 +15,6 @@ async function classifyCricketShots() {
 
     //Get the poseVectors for test data images
     let imgURLArr = [selectedImgURL];
-    console.log(`imgURLArr: ${imgURLArr}`);
     let testDataArr = await getPoses(imgURLArr);
     /* If using direct pose data, then use the below statements */
     //let testDataArr = await getPoses(data.testDataImgURLArr);
